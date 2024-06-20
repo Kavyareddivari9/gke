@@ -1,0 +1,44 @@
+variable "helm_version" {
+  default = "v2.13.1"
+}
+
+data "google_client_config" "current" {}
+
+provider "helm" {
+  tiller_image = "gcr.io/kubernetes-helm/tiller:${var.helm_version}"
+  install_tiller = false # Temporary
+
+  kubernetes {
+    host                   = "${google_container_cluster.data-dome-cluster.endpoint}"
+    token                  = "${data.google_client_config.current.access_token}"
+
+    client_certificate     = "${base64decode(google_container_cluster.data-dome-cluster.master_auth.0.client_certificate)}"
+    client_key             = "${base64decode(google_container_cluster.data-dome-cluster.master_auth.0.client_key)}"
+    cluster_ca_certificate = "${base64decode(google_container_cluster.data-dome-cluster.master_auth.0.cluster_ca_certificate)}"
+  }
+}
+
+
+resource "helm_release" "nginx-ingress" {
+  name  = "ingress"
+  chart = "stable/nginx-ingress"
+
+  values = [<<EOF
+rbac:
+  create: false
+controller:
+  stats:
+    enabled: true
+  metrics:
+    enabled: true
+  service:
+    annotations:
+      cloud.google.com/load-balancer-type: "Internal"
+    externalTrafficPolicy: "Local"
+EOF
+  ]
+
+  depends_on = [
+    "google_container_cluster.data-dome-cluster",
+  ]
+}
