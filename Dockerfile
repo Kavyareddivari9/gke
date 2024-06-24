@@ -5,7 +5,7 @@ FROM python:3.9
 WORKDIR /app
 
 # Copy your application code into the container
-COPY . /app
+COPY gke/source/app /app
 
 # Install any dependencies (if needed)
 RUN pip install -r requirements.txt
