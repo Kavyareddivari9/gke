@@ -51,12 +51,12 @@ module "gke_cluster" {
   location = var.location
   network  = module.vpc_network.network
 
-  # We're deploying the cluster in the 'public' subnetwork to allow outbound internet access
+  # We're deploying the cluster in the 'private' subnetwork to allow outbound internet access
   # See the network access tier table for full details:
   # https://github.com/gruntwork-io/terraform-google-network/tree/master/modules/vpc-network#access-tier
-  subnetwork                    = module.vpc_network.public_subnetwork
-  cluster_secondary_range_name  = module.vpc_network.public_subnetwork_secondary_range_name
-  services_secondary_range_name = module.vpc_network.public_services_secondary_range_name
+  subnetwork                    = module.vpc_network.private_subnetwork
+  cluster_secondary_range_name  = module.vpc_network.private_subnetwork_secondary_range_name
+  services_secondary_range_name = module.vpc_network.private_services_secondary_range_name
 
   # When creating a private cluster, the 'master_ipv4_cidr_block' has to be defined and the size must be /28
   master_ipv4_cidr_block = var.master_ipv4_cidr_block
@@ -64,8 +64,8 @@ module "gke_cluster" {
   # This setting will make the cluster private
   enable_private_nodes = "true"
 
-  # To make testing easier, we keep the public endpoint available. In production, we highly recommend restricting access to only within the network boundary, requiring your users to use a bastion host or VPN.
-  disable_public_endpoint = "false"
+  # To make testing easier, we keep the private endpoint available. In production, we highly recommend restricting access to only within the network boundary, requiring your users to use a bastion host or VPN.
+  disable_private_endpoint = "false"
 
   # With a private cluster, it is highly recommended to restrict access to the cluster master
   # However, for testing purposes we will allow all inbound traffic.
@@ -177,9 +177,9 @@ module "vpc_network" {
   cidr_block           = var.vpc_cidr_block
   secondary_cidr_block = var.vpc_secondary_cidr_block
 
-  public_subnetwork_secondary_range_name = var.public_subnetwork_secondary_range_name
-  public_services_secondary_range_name   = var.public_services_secondary_range_name
-  public_services_secondary_cidr_block   = var.public_services_secondary_cidr_block
+  private_subnetwork_secondary_range_name = var.private_subnetwork_secondary_range_name
+  private_services_secondary_range_name   = var.private_services_secondary_range_name
+  private_services_secondary_cidr_block   = var.private_services_secondary_cidr_block
   private_services_secondary_cidr_block  = var.private_services_secondary_cidr_block
   secondary_cidr_subnetwork_width_delta  = var.secondary_cidr_subnetwork_width_delta
   secondary_cidr_subnetwork_spacing      = var.secondary_cidr_subnetwork_spacing
