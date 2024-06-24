@@ -131,17 +131,13 @@ data "terraform_remote_state" "foo" {
   }
 }
 
-# Terraform >= 0.12
+
 resource "local_file" "foo" {
   content  = data.terraform_remote_state.foo.outputs.greeting
   filename = "${path.module}/outputs.txt"
 }
 
-# Terraform <= 0.11
-resource "local_file" "foo" {
-  content  = "${data.terraform_remote_state.foo.greeting}"
-  filename = "${path.module}/outputs.txt"
-}
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE A NODE POOL
@@ -288,6 +284,9 @@ resource "kubernetes_cluster_role_binding" "user" {
     api_group = "rbac.authorization.k8s.io"
   }
 }
+#---------------------------------------------
+# Deploying through Ingress
+#-------------------------------------------
 resource "kubernetes_ingress" "example_ingress" {
   metadata {
     name = "example-ingress"
@@ -323,43 +322,7 @@ resource "kubernetes_ingress" "example_ingress" {
       secret_name = "tls-secret"
     }
   }
-}
-#--------------------------------------------------------------------
-
-resource "google_dns_record_set" "my_dns_record" {
-  name    = "myapp.example.com."
-  type    = "A"
-  ttl     = 300
-  managed_zone = google_dns_managed_zone.my_dns_zone.name
-  rrdatas = [google_container_cluster.my_cluster.private_cluster_config.master_ipv4_cidr_block]
-}
-
-resource "kubernetes_deployment" "my_app" {
-  metadata {
-    name = "my-app"
-    namespace = "default"
-  }
-
-  spec {
-    replicas = 3
-    selector {
-      match_labels = {
-        app = "my-app"
-      }
-    }
-    template {
-      metadata {
-        labels = {
-          app = "my-app"
-        }
-      }
-      spec {
-        containers {
-          name = "my-app-container"
-          image = "my-app-image"
-          # Other container configuration...
-
-          readiness_probe {
+readiness_probe {
             http_get {
               path = "/health"
               port = 8080
@@ -380,6 +343,22 @@ resource "kubernetes_deployment" "my_app" {
       }
     }
   }
+}
+#--------------------------------------------------------------------
+# Creating DNS Records
+#--------------------------------------------------------------------
+resource "google_dns_managed_zone" "my_dns_zone" {
+  name        = "myapp-zone"
+  dns_name    = "myapp.example.com."
+  description = "My DNS Zone"
+
+}
+resource "google_dns_record_set" "my_dns_record" {
+  name    = "myapp.example.com."
+  type    = "A"
+  ttl     = 300
+  managed_zone = google_dns_managed_zone.my_dns_zone.name
+  rrdatas = [google_container_cluster.my_cluster.private_cluster_config.master_ipv4_cidr_block]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -402,8 +381,6 @@ resource "google_dns_managed_zone" "my_dns_zone" {
   description = "My DNS Zone"
 
 }
-
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # WORKAROUNDS
