@@ -181,8 +181,7 @@ module "vpc_network" {
   private_services_secondary_range_name   = var.private_services_secondary_range_name
   private_services_secondary_cidr_block   = var.private_services_secondary_cidr_block
   private_services_secondary_cidr_block  = var.private_services_secondary_cidr_block
-  secondary_cidr_subnetwork_width_delta  = var.secondary_cidr_subnetwork_width_delta
-  secondary_cidr_subnetwork_spacing      = var.secondary_cidr_subnetwork_spacing
+  
 }
 
 # Use a random suffix to prevent overlap in network names
